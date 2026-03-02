@@ -28,7 +28,7 @@ const renderCards = async () => {
 };
 
 const createCollapsibleSection = (title, cards) => {
-  const sectionContainer = document.createElement('div');
+  const sectionContainer = document.createElement('section');
   sectionContainer.className = 'section-container';
 
   const sectionTitle = document.createElement('button');
@@ -41,7 +41,7 @@ const createCollapsibleSection = (title, cards) => {
 
   // Populate cards
   cards.forEach(card => {
-    const cardEl = document.createElement('div');
+    const cardEl = document.createElement('article');
     cardEl.classList.add('card');
 
     const cardInner = document.createElement('div');

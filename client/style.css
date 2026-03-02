@@ -1,4 +1,5 @@
 :root {
+  /* Custom theme colors */
   --gold: #c9a84c;
   --gold-light: #e8d48b;
   --gold-dim: #8a7234;
@@ -9,6 +10,40 @@
   --card-bg: rgba(255, 255, 255, 0.03);
   --card-border: rgba(201, 168, 76, 0.15);
   --divider: rgba(201, 168, 76, 0.25);
+
+  /* Override picocss variables to match mystical theme */
+  --primary: var(--gold);
+  --primary-hover: var(--gold-light);
+  --primary-focus: rgba(201, 168, 76, 0.125);
+  --background-color: var(--purple-deep);
+  --color: var(--cream);
+  --heading-color: var(--gold);
+  --muted-color: rgba(245, 240, 232, 0.6);
+  --muted-border-color: var(--card-border);
+  --secondary: var(--gold-dim);
+  --secondary-hover: var(--gold);
+  --contrast: var(--cream);
+  --contrast-hover: #ffffff;
+  --box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --h1-color: var(--gold);
+  --h2-color: var(--gold-light);
+  --h3-color: var(--gold);
+  --h4-color: var(--gold-dim);
+  --h5-color: var(--gold-dim);
+  --h6-color: var(--gold-dim);
+  --border-radius: 10px;
+  --form-element-spacing-vertical: 0.75rem;
+  --form-element-spacing-horizontal: 1rem;
+}
+
+/* Dark mode colors for picocss */
+[data-theme="dark"],
+:root:not([data-theme="light"]) {
+  --primary: var(--gold);
+  --primary-hover: var(--gold-light);
+  --primary-focus: rgba(201, 168, 76, 0.125);
+  --background-color: var(--purple-deep);
+  --color: var(--cream);
 }
 
 * {
@@ -46,10 +81,52 @@ a {
   color: var(--gold-light);
 }
 
+/* Override picocss button styles for mystical theme */
+button,
+[type="button"],
+[type="submit"],
+[type="reset"],
+[role="button"] {
+  --background-color: rgba(201, 168, 76, 0.1);
+  --border-color: rgba(201, 168, 76, 0.35);
+  --color: var(--gold-light);
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+button:hover,
+[type="button"]:hover,
+[type="submit"]:hover,
+[type="reset"]:hover,
+a[role="button"]:hover {
+  --background-color: rgba(201, 168, 76, 0.18);
+  --border-color: var(--gold);
+}
+
+/* Picocss uses nav, section, article - ensure they work with our design */
+nav,
+section,
+article {
+  margin: 0;
+}
+
+/* Maintain mystical heading styles with picocss */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--gold);
+  font-family: 'Cinzel', serif;
+}
+
 .container {
   max-width: 1120px;
   margin: 0 auto;
   padding: 0 1.5rem;
+}
+
+/* Ensure picocss grid works with our mystical design */
+.grid {
+  grid-column-gap: var(--spacing);
+  grid-row-gap: var(--spacing);
 }
 
 .header-container {
@@ -141,13 +218,13 @@ a {
 
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 1.2rem;
-  padding: 1.2rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  padding: 1.5rem;
 }
 
 .card {
-  height: 360px;
+  height: 420px;
   perspective: 1000px;
 }
 
@@ -175,8 +252,10 @@ a {
 }
 
 .card-front {
-  background-size: cover;
+  background-size: contain;
   background-position: center;
+  background-repeat: no-repeat;
+  background-color: rgba(0, 0, 0, 0.2);
 }
 
 .card-back {
@@ -187,20 +266,21 @@ a {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 1.2rem;
+  padding: 1.8rem 1.4rem;
   text-align: center;
 }
 
 .card-back h3 {
-  margin: 0 0 0.45rem;
+  margin: 0 0 0.6rem;
   font-family: 'Cinzel', serif;
   color: var(--gold);
-  font-size: 1.03rem;
+  font-size: 1.15rem;
 }
 
 .card-back p {
-  margin: 0 0 0.9rem;
+  margin: 0 0 1.1rem;
   color: rgba(245, 240, 232, 0.75);
+  font-size: 0.95rem;
 }
 
 .card-back a {
@@ -210,10 +290,10 @@ a {
   color: var(--gold-light);
   text-decoration: none;
   font-family: 'Cinzel', serif;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  padding: 0.45rem 0.75rem;
+  padding: 0.6rem 1rem;
 }
 
 /* Detail page skeleton + components */
@@ -280,6 +360,8 @@ a {
 }
 
 .card-frame {
+  width: 100%;
+  max-width: 320px;
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid var(--card-border);
@@ -288,7 +370,9 @@ a {
 
 .card-frame img {
   width: 100%;
+  height: auto;
   display: block;
+  object-fit: cover;
 }
 
 .card-frame-caption {
@@ -519,5 +603,17 @@ a {
   .grid-two,
   .grid-three {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .cards-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.2rem;
+    padding: 1rem;
+  }
+
+  .card {
+    height: 380px;
   }
 }

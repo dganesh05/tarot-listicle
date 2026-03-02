@@ -1,6 +1,6 @@
 const header = document.querySelector('header');
 
-const headerContainer = document.createElement('div');
+const headerContainer = document.createElement('nav');
 headerContainer.className = 'header-container';
 
 const headerLeft = document.createElement('div');
