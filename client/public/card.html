@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tarot Card Details</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&display=swap" rel="stylesheet">
+    
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        --gold: #c9a84c;
+        --gold-light: #e8d48b;
+        --gold-dim: #8a7234;
+        --cream: #f5f0e8;
+        --parchment: #ece4d4;
+        --ink: #1a1a2e;
+        --ink-light: #2d2d44;
+        --ink-soft: #4a4a6a;
+        --purple-deep: #1a1028;
+        --purple-mid: #2a1f3d;
+        --purple-soft: #3d2e5c;
+        --accent-blue: #6b8cae;
+        --accent-rose: #b07a8a;
+        --divider: rgba(201, 168, 76, 0.25);
+        --card-bg: rgba(255, 255, 255, 0.03);
+        --card-border: rgba(201, 168, 76, 0.15);
+      }
+
+      body {
+        font-family: 'Cormorant Garamond', Georgia, serif;
+        background: var(--purple-deep);
+        color: var(--cream);
+        line-height: 1.7;
+        font-size: 17px;
+        min-height: 100vh;
+      }
+
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background:
+          radial-gradient(ellipse 80% 60% at 20% 10%, rgba(107, 140, 174, 0.08), transparent),
+          radial-gradient(ellipse 60% 50% at 80% 80%, rgba(176, 122, 138, 0.06), transparent),
+          radial-gradient(ellipse 90% 70% at 50% 50%, rgba(201, 168, 76, 0.03), transparent);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .page-wrapper { position: relative; z-index: 1; }
+
+      header {
+        background: var(--purple-mid);
+        border-bottom: 1px solid var(--card-border);
+        padding: 0.8rem 0;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+
+      .header-container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .header-left h1 {
+        font-family: 'Cinzel', serif;
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: var(--gold);
+        letter-spacing: 0.08em;
+        margin: 0;
+      }
+
+      .header-right button {
+        padding: 0.55rem 1.5rem;
+        background: rgba(201, 168, 76, 0.1);
+        border: 1px solid var(--gold-dim);
+        color: var(--gold);
+        font-family: 'Cinzel', serif;
+        font-size: 0.85rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.25s;
+      }
+
+      .header-right button:hover {
+        background: rgba(201, 168, 76, 0.2);
+        border-color: var(--gold-light);
+      }
+
+      .hero {
+        position: relative;
+        padding: 3rem 1.5rem 2rem;
+        text-align: center;
+        overflow: hidden;
+      }
+      .hero::after {
+        content: '';
+        position: absolute;
+        bottom: 0; left: 10%; right: 10%;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+      }
+
+      .hero-numeral {
+        font-family: 'Cinzel', serif;
+        font-size: clamp(3rem, 8vw, 5.5rem);
+        font-weight: 800;
+        color: transparent;
+        -webkit-text-stroke: 1px rgba(201, 168, 76, 0.2);
+        letter-spacing: 0.15em;
+        line-height: 1;
+        margin-bottom: -0.2em;
+        user-select: none;
+      }
+
+      .hero h1 {
+        font-family: 'Cinzel', serif;
+        font-size: clamp(2rem, 5vw, 3.2rem);
+        font-weight: 700;
+        color: var(--gold);
+        letter-spacing: 0.08em;
+        margin-bottom: 0.3rem;
+      }
+
+      .hero-meta {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+        font-family: 'Cinzel', serif;
+        font-size: 0.8rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--gold-dim);
+      }
+      .hero-meta .sep { opacity: 0.4; }
+
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+      }
+
+      .card-layout {
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        gap: 3rem;
+        padding: 2.5rem 0;
+        align-items: start;
+      }
+
+      @media (max-width: 820px) {
+        .card-layout {
+          grid-template-columns: 1fr;
+          gap: 2rem;
+        }
+        .card-image-col { display: flex; justify-content: center; }
+      }
+
+      .card-image-sticky {
+        position: sticky;
+        top: 2rem;
+      }
+      .card-frame {
+        width: 280px;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow:
+          0 4px 24px rgba(0,0,0,0.4),
+          0 0 60px rgba(201, 168, 76, 0.06);
+        border: 1px solid var(--card-border);
+        background: var(--ink);
+      }
+      .card-frame img {
+        width: 100%;
+        display: block;
+      }
+      .card-frame-caption {
+        padding: 0.9rem 1rem;
+        text-align: center;
+        font-family: 'Cinzel', serif;
+        font-size: 0.72rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--gold-dim);
+        background: rgba(0,0,0,0.3);
+        border-top: 1px solid var(--card-border);
+      }
+
+      .quick-facts {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+        margin-top: 1rem;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid var(--card-border);
+        width: 280px;
+      }
+      .quick-fact {
+        padding: 0.65rem 0.8rem;
+        background: rgba(255,255,255,0.02);
+        border-bottom: 1px solid var(--card-border);
+      }
+      .quick-fact:nth-child(odd) { border-right: 1px solid var(--card-border); }
+      .quick-fact-label {
+        font-family: 'Cinzel', serif;
+        font-size: 0.58rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--gold-dim);
+        margin-bottom: 0.15rem;
+      }
+      .quick-fact-value {
+        font-size: 0.92rem;
+        color: var(--cream);
+        font-weight: 500;
+      }
+
+      .section-label {
+        font-family: 'Cinzel', serif;
+        font-size: 0.65rem;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        color: var(--gold-dim);
+        margin-bottom: 0.6rem;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+      }
+      .section-label::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(90deg, var(--divider), transparent);
+      }
+
+      .section-title {
+        font-family: 'Cinzel', serif;
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: var(--gold-light);
+        margin-bottom: 0.8rem;
+        letter-spacing: 0.04em;
+      }
+
+      .section-block {
+        margin-bottom: 2.2rem;
+      }
+
+      .description-text {
+        font-size: 1.05rem;
+        font-style: italic;
+        color: rgba(245,240,232,0.75);
+        line-height: 1.8;
+        border-left: 2px solid var(--gold-dim);
+        padding-left: 1.2rem;
+      }
+
+      .tag-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+      }
+      .tag {
+        display: inline-block;
+        padding: 0.3rem 0.75rem;
+        border-radius: 100px;
+        font-size: 0.82rem;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+      }
+      .tag-upright {
+        background: rgba(107, 174, 120, 0.12);
+        border: 1px solid rgba(107, 174, 120, 0.25);
+        color: #a8d5a2;
+      }
+      .tag-reversed {
+        background: rgba(190, 100, 100, 0.12);
+        border: 1px solid rgba(190, 100, 100, 0.25);
+        color: #d4a0a0;
+      }
+
+      .symbol-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.8rem;
+      }
+      @media (max-width: 600px) { .symbol-grid { grid-template-columns: 1fr; } }
+
+      .symbol-card {
+        padding: 1rem 1.1rem;
+        border-radius: 10px;
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+      }
+      .symbol-card-name {
+        font-family: 'Cinzel', serif;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--gold);
+        letter-spacing: 0.06em;
+        text-transform: capitalize;
+        margin-bottom: 0.25rem;
+      }
+      .symbol-card-desc {
+        font-size: 0.88rem;
+        color: rgba(245,240,232,0.7);
+        line-height: 1.6;
+      }
+
+      .reading-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.8rem;
+      }
+      @media (max-width: 600px) { .reading-grid { grid-template-columns: 1fr; } }
+
+      .reading-card {
+        padding: 1.2rem;
+        border-radius: 10px;
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+      }
+      .reading-card-icon {
+        font-size: 1.3rem;
+        margin-bottom: 0.3rem;
+      }
+      .reading-card-title {
+        font-family: 'Cinzel', serif;
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--gold);
+        margin-bottom: 0.45rem;
+      }
+      .reading-card p { font-size: 0.9rem; color: rgba(245,240,232,0.75); line-height: 1.65; }
+      .reading-label {
+        display: inline-block;
+        font-family: 'Cinzel', serif;
+        font-size: 0.6rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        padding: 0.15rem 0.5rem;
+        border-radius: 4px;
+        margin-bottom: 0.3rem;
+      }
+      .label-upright { background: rgba(107,174,120,0.12); color: #a8d5a2; }
+      .label-reversed { background: rgba(190,100,100,0.12); color: #d4a0a0; }
+
+      .guidance-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.8rem;
+      }
+      @media (max-width: 600px) { .guidance-grid { grid-template-columns: 1fr; } }
+
+      .guidance-card {
+        padding: 1.2rem;
+        border-radius: 10px;
+      }
+      .guidance-advice {
+        background: rgba(107, 140, 174, 0.08);
+        border: 1px solid rgba(107, 140, 174, 0.18);
+      }
+      .guidance-warning {
+        background: rgba(190, 130, 80, 0.08);
+        border: 1px solid rgba(190, 130, 80, 0.18);
+      }
+      .guidance-card-title {
+        font-family: 'Cinzel', serif;
+        font-size: 0.7rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-bottom: 0.4rem;
+      }
+      .guidance-advice .guidance-card-title { color: var(--accent-blue); }
+      .guidance-warning .guidance-card-title { color: #c9935a; }
+      .guidance-card p { font-size: 0.92rem; color: rgba(245,240,232,0.78); line-height: 1.7; }
+
+      .affirmation-block {
+        text-align: center;
+        padding: 1.8rem 2rem;
+        border-radius: 12px;
+        background: linear-gradient(135deg, rgba(201,168,76,0.06), rgba(201,168,76,0.02));
+        border: 1px solid var(--card-border);
+      }
+      .affirmation-block .section-label { justify-content: center; }
+      .affirmation-block .section-label::after { display: none; }
+      .affirmation-text {
+        font-size: 1.15rem;
+        font-style: italic;
+        color: var(--gold-light);
+        line-height: 1.8;
+        max-width: 540px;
+        margin: 0 auto;
+      }
+
+      .correspondences-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.8rem;
+      }
+      @media (max-width: 600px) { .correspondences-row { grid-template-columns: 1fr; } }
+
+      .corr-card {
+        padding: 1rem 1.1rem;
+        border-radius: 10px;
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+      }
+      .corr-card-title {
+        font-family: 'Cinzel', serif;
+        font-size: 0.62rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--gold-dim);
+        margin-bottom: 0.5rem;
+      }
+      .corr-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+      }
+      .corr-pill {
+        padding: 0.25rem 0.65rem;
+        border-radius: 100px;
+        font-size: 0.8rem;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        color: rgba(245,240,232,0.7);
+      }
+
+      .color-row {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+      }
+      .color-swatch {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        border: 2px solid rgba(255,255,255,0.1);
+        position: relative;
+      }
+      .color-swatch[title]::after {
+        content: attr(title);
+        position: absolute;
+        bottom: -1.4rem;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.6rem;
+        color: var(--gold-dim);
+        white-space: nowrap;
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+      .color-swatch:hover::after { opacity: 1; }
+
+      .related-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .related-chip {
+        padding: 0.4rem 1rem;
+        border-radius: 8px;
+        font-family: 'Cinzel', serif;
+        font-size: 0.78rem;
+        font-weight: 500;
+        color: var(--gold);
+        background: rgba(201,168,76,0.08);
+        border: 1px solid rgba(201,168,76,0.2);
+        text-decoration: none;
+        transition: all 0.25s;
+        letter-spacing: 0.03em;
+      }
+      .related-chip:hover {
+        background: rgba(201,168,76,0.15);
+        border-color: rgba(201,168,76,0.35);
+      }
+
+      .meta-text {
+        font-size: 0.95rem;
+        color: rgba(245,240,232,0.72);
+        line-height: 1.7;
+      }
+
+      .original-block {
+        padding: 1.1rem 1.3rem;
+        border-radius: 10px;
+        background: rgba(255,255,255,0.02);
+        border: 1px solid var(--card-border);
+        font-style: italic;
+        color: rgba(245,240,232,0.6);
+        font-size: 0.92rem;
+        line-height: 1.7;
+      }
+      .original-block strong {
+        color: var(--gold-dim);
+        font-style: normal;
+        font-family: 'Cinzel', serif;
+        font-size: 0.68rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        display: block;
+        margin-bottom: 0.25rem;
+      }
+
+      .page-footer {
+        text-align: center;
+        padding: 2.5rem 1rem;
+        font-family: 'Cinzel', serif;
+        font-size: 0.65rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--gold-dim);
+        opacity: 0.5;
+        border-top: 1px solid var(--card-border);
+        margin-top: 1rem;
+      }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-track { background: var(--purple-deep); }
+      ::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 3px; }
+
+      .detail-error {
+        text-align: center;
+        padding: 3rem 1.5rem;
+      }
+      .detail-error h2 {
+        font-family: 'Cinzel', serif;
+        color: var(--gold);
+        margin-bottom: 1rem;
+      }
+      .detail-error p {
+        color: var(--cream);
+        margin-bottom: 1.5rem;
+      }
+      .detail-error a {
+        display: inline-block;
+        padding: 0.8rem 2rem;
+        background: rgba(201,168,76,0.1);
+        border: 1px solid var(--gold-dim);
+        color: var(--gold);
+        text-decoration: none;
+        border-radius: 8px;
+        font-family: 'Cinzel', serif;
+        letter-spacing: 0.1em;
+        transition: all 0.25s;
+      }
+      .detail-error a:hover {
+        background: rgba(201,168,76,0.2);
+      }
+
+      .grid-two {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.8rem;
+      }
+      @media (max-width: 600px) { .grid-two { grid-template-columns: 1fr; } }
+
+      .grid-three {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.8rem;
+      }
+      @media (max-width: 600px) { .grid-three { grid-template-columns: 1fr; } }
+
+      .soft-card {
+        padding: 1rem 1.1rem;
+        border-radius: 10px;
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+      }
+      .soft-card h4 {
+        font-family: 'Cinzel', serif;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--gold);
+        letter-spacing: 0.06em;
+        margin-bottom: 0.4rem;
+      }
+      .soft-card p {
+        font-size: 0.88rem;
+        color: rgba(245,240,232,0.7);
+        line-height: 1.6;
+      }
+
+      .pill-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+      }
+      .pill {
+        padding: 0.25rem 0.65rem;
+        border-radius: 100px;
+        font-size: 0.8rem;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        color: rgba(245,240,232,0.7);
+      }
+    </style>
+    
+    <script defer src="/scripts/card-detail.js"></script>
+    <script defer src="/scripts/header.js"></script>
+  </head>
+
+  <body>
+    <header style="background: var(--purple-mid); border-bottom: 1px solid var(--card-border); padding: 0.8rem 0; position: sticky; top: 0; z-index: 100;"></header>
+    <div class="page-wrapper">
+      <section class="hero" id="card-hero">
+        <div class="hero-numeral" id="card-number">—</div>
+        <h1 id="card-name">Tarot Card</h1>
+        <div class="hero-meta" id="card-meta"></div>
+      </section>
+
+      <main class="container" id="card-content">
+        <div class="card-layout">
+          <aside class="card-image-col">
+            <div class="card-image-sticky">
+              <div class="card-frame">
+                <img id="card-image" src="" alt="Tarot Card" />
+                <div class="card-frame-caption" id="card-caption"></div>
+              </div>
+
+              <div class="quick-facts" id="quick-facts"></div>
+            </div>
+          </aside>
+
+          <section class="card-detail-col" id="detail-sections">
+            <div class="section-block">
+              <div class="section-label">Loading</div>
+              <p class="meta-text">Calling the cards...</p>
+            </div>
+          </section>
+        </div>
+      </main>
+
+      <footer class="page-footer" id="page-footer"></footer>
+    </div>
+
+    <template id="section-template">
+      <section class="section-block">
+        <div class="section-label"></div>
+        <div class="section-body"></div>
+      </section>
+    </template>
+
+    <template id="reading-section-template">
+      <div class="section-block">
+        <div class="section-label">In a Reading</div>
+        <div class="reading-grid"></div>
+      </div>
+    </template>
+
+    <template id="reading-card-template">
+      <div class="reading-card">
+        <div class="reading-card-icon"></div>
+        <div class="reading-card-title"></div>
+        <span class="reading-label label-upright"></span>
+        <p></p>
+        <br>
+        <span class="reading-label label-reversed"></span>
+        <p></p>
+      </div>
+    </template>
+  </body>
+</html>
