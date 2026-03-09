@@ -1,5 +1,3 @@
-const sectionTemplate = document.getElementById('section-template');
-
 const formatLabel = (value) => {
   if (!value) {
     return '';
@@ -15,11 +13,77 @@ const normalizeSlug = () => {
   return parts[parts.length - 1] || '';
 };
 
-const createSection = (title) => {
-  const clone = sectionTemplate.content.cloneNode(true);
-  const section = clone.querySelector('.section-block');
-  section.querySelector('.section-label').textContent = title;
-  return section;
+const SECTION_IDS = {
+  image: 'section-image',
+  quickFacts: 'section-quick-facts',
+  description: 'section-description',
+  keywords: 'section-keywords',
+  meanings: 'section-meanings',
+  visualSymbols: 'section-visual-symbols',
+  reading: 'section-reading',
+  spirituality: 'section-spirituality',
+  numerology: 'section-numerology',
+  symbolism: 'section-symbolism',
+  guidance: 'section-guidance',
+  affirmation: 'section-affirmation',
+  correspondences: 'section-correspondences',
+  related: 'section-related',
+  original: 'section-original',
+  additional: 'section-additional'
+};
+
+const getSection = (sectionId) => document.getElementById(sectionId);
+
+const getSectionBody = (sectionId) => {
+  const section = getSection(sectionId);
+  return section ? section.querySelector('.section-body') : null;
+};
+
+const getSafeSectionBody = (sectionId) => {
+  const body = getSectionBody(sectionId);
+  if (!body) {
+    hideSection(sectionId);
+    return null;
+  }
+
+  return body;
+};
+
+const showSection = (sectionId) => {
+  const section = getSection(sectionId);
+  if (section) {
+    section.hidden = false;
+  }
+};
+
+const hideSection = (sectionId) => {
+  const section = getSection(sectionId);
+  if (section) {
+    section.hidden = true;
+  }
+};
+
+const clearSectionBody = (sectionId) => {
+  const body = getSectionBody(sectionId);
+  if (body) {
+    body.innerHTML = '';
+  }
+};
+
+const resetDynamicSections = () => {
+  const sections = document.querySelectorAll('[data-dynamic-section]');
+  sections.forEach((section) => {
+    section.hidden = true;
+
+    if (section.id === SECTION_IDS.image) {
+      return;
+    }
+
+    const body = section.querySelector('.section-body');
+    if (body) {
+      body.innerHTML = '';
+    }
+  });
 };
 
 const createTagRow = (items, tagClass = 'tag') => {
@@ -37,7 +101,7 @@ const createTagRow = (items, tagClass = 'tag') => {
 };
 
 const addText = (container, text, className = 'meta-text') => {
-  if (!text) {
+  if (!container || !text) {
     return;
   }
 
@@ -47,38 +111,17 @@ const addText = (container, text, className = 'meta-text') => {
   container.appendChild(p);
 };
 
-const createSoftCard = (title, content) => {
-  const card = document.createElement('article');
-  card.className = 'soft-card';
-
-  const heading = document.createElement('h4');
-  heading.textContent = title;
-
-  const body = document.createElement('p');
-  body.textContent = content;
-
-  card.appendChild(heading);
-  card.appendChild(body);
-  return card;
-};
-
 const renderHero = (card) => {
   document.getElementById('card-name').textContent = card.name;
-  document.getElementById('card-number').textContent = Number.isFinite(card.number) ? card.number : '—';
+  document.getElementById('card-number').textContent = Number.isFinite(card.number) ? card.number : '-';
 
   const heroMeta = document.getElementById('card-meta');
-  const parts = [
-    card.arcana ? `${card.arcana} Arcana` : '',
-    card.suit || '',
-    card.element || '',
-    card.astrology || '',
-    card.yes_maybe_no || ''
-  ].filter(Boolean);
+  const parts = Array.isArray(card.keywords) ? card.keywords : [];
 
   heroMeta.innerHTML = '';
   parts.forEach((part, index) => {
     const span = document.createElement('span');
-    span.textContent = part;
+    span.textContent = formatLabel(part);
     heroMeta.appendChild(span);
 
     if (index < parts.length - 1) {
@@ -90,29 +133,73 @@ const renderHero = (card) => {
   });
 };
 
+const createOrientationToggle = () => {
+  const updateOrientationA11y = (button, isReversed) => {
+    button.setAttribute('aria-pressed', String(isReversed));
+    button.setAttribute('aria-label', isReversed ? 'Switch to upright card view' : 'Switch to reversed card view');
+    button.title = isReversed ? 'Switch to upright view' : 'Switch to reversed view';
+  };
+
+  const cardFrame = document.querySelector('.card-frame');
+  if (!cardFrame) {
+    return;
+  }
+
+  const existingButton = document.getElementById('orientation-toggle');
+  if (existingButton) {
+    existingButton.remove();
+  }
+
+  const toggleButton = document.createElement('button');
+  toggleButton.type = 'button';
+  toggleButton.className = 'orientation-overlay-btn';
+  toggleButton.id = 'orientation-toggle';
+  updateOrientationA11y(toggleButton, false);
+
+  const toggleIcon = document.createElement('img');
+  toggleIcon.src = '/images/exchange.png';
+  toggleIcon.alt = '';
+  toggleIcon.setAttribute('aria-hidden', 'true');
+
+  toggleButton.appendChild(toggleIcon);
+
+  toggleButton.addEventListener('click', () => {
+    const isReversed = toggleButton.classList.toggle('reversed');
+    const cardImage = document.getElementById('card-image');
+    updateOrientationA11y(toggleButton, isReversed);
+
+    cardImage.classList.toggle('reversed', isReversed);
+
+    const uprightContainers = document.querySelectorAll('.meanings-container[data-orientation="upright"]');
+    const reversedContainers = document.querySelectorAll('.meanings-container[data-orientation="reversed"]');
+
+    uprightContainers.forEach((container) => {
+      container.classList.toggle('active', !isReversed);
+    });
+
+    reversedContainers.forEach((container) => {
+      container.classList.toggle('active', isReversed);
+    });
+  });
+
+  cardFrame.appendChild(toggleButton);
+};
+
 const renderImageAndFacts = (card) => {
   const image = document.getElementById('card-image');
   image.src = card.image || card.image_url || '';
   image.alt = card.name || 'Tarot Card';
 
-  const caption = document.getElementById('card-caption');
-  const captionParts = [
-    'Rider–Waite–Smith',
-    Number.isFinite(card.number) ? `Card ${card.number}` : '',
-    card.suit || ''
-  ].filter(Boolean);
-  caption.textContent = captionParts.join(' · ');
-
+  clearSectionBody(SECTION_IDS.quickFacts);
   const quickFacts = document.getElementById('quick-facts');
-  quickFacts.innerHTML = '';
 
   const facts = [
-    ['Arcana', card.arcana ? `${card.arcana} Arcana` : '—'],
-    ['Suit', card.suit || '—'],
-    ['Element', card.element || '—'],
-    ['Astrology', card.astrology || '—'],
-    ['Yes / No', card.yes_maybe_no || '—'],
-    ['Number', Number.isFinite(card.number) ? card.number : '—']
+    ['Arcana', card.arcana ? `${card.arcana} Arcana` : '-'],
+    ['Suit', card.suit || '-'],
+    ['Element', card.element || '-'],
+    ['Astrology', card.astrology || '-'],
+    ['Yes / No', card.yes_maybe_no || '-'],
+    ['Number', Number.isFinite(card.number) ? card.number : '-']
   ];
 
   facts.forEach(([label, value]) => {
@@ -131,77 +218,91 @@ const renderImageAndFacts = (card) => {
     fact.appendChild(valueNode);
     quickFacts.appendChild(fact);
   });
+
+  showSection(SECTION_IDS.image);
+  showSection(SECTION_IDS.quickFacts);
 };
 
-const renderDescription = (card, container) => {
-  console.log('[renderDescription] Has description?', !!card.description);
+const renderDescription = (card) => {
   if (!card.description) {
+    hideSection(SECTION_IDS.description);
     return;
   }
 
-  const section = createSection('Card Description');
-  addText(section.querySelector('.section-body'), card.description, 'description-text');
-  container.appendChild(section);
+  const body = getSectionBody(SECTION_IDS.description);
+  addText(body, card.description, 'description-text');
+  showSection(SECTION_IDS.description);
 };
 
-const renderKeywords = (card, container) => {
+const renderKeywords = (card) => {
   const hasKeywords = Array.isArray(card.keywords) && card.keywords.length > 0;
-  console.log('[renderKeywords] Has keywords?', hasKeywords, 'Keywords:', card.keywords);
   if (!hasKeywords) {
+    hideSection(SECTION_IDS.keywords);
     return;
   }
 
-  const section = createSection('Keywords');
-  section.querySelector('.section-body').appendChild(createTagRow(card.keywords));
-  container.appendChild(section);
+  const body = getSafeSectionBody(SECTION_IDS.keywords);
+  if (!body) {
+    return;
+  }
+
+  body.appendChild(createTagRow(card.keywords));
+  showSection(SECTION_IDS.keywords);
 };
 
-const renderMeanings = (card, container) => {
+const renderMeanings = (card) => {
   const hasUpright = Array.isArray(card.meanings_upright) && card.meanings_upright.length > 0;
   const hasReversed = Array.isArray(card.meanings_reversed) && card.meanings_reversed.length > 0;
 
   if (!hasUpright && !hasReversed) {
+    hideSection(SECTION_IDS.meanings);
     return;
   }
 
-  const section = createSection('Meanings');
-  const body = section.querySelector('.section-body');
+  const body = getSafeSectionBody(SECTION_IDS.meanings);
+  if (!body) {
+    return;
+  }
 
   if (hasUpright) {
-    const heading = document.createElement('div');
-    heading.className = 'section-title';
-    heading.textContent = 'Upright';
-    body.appendChild(heading);
-    
+    const uprightContainer = document.createElement('div');
+    uprightContainer.className = 'meanings-container active';
+    uprightContainer.dataset.orientation = 'upright';
+
     const tagRow = createTagRow(card.meanings_upright, 'tag-upright');
-    tagRow.style.marginBottom = '1rem';
-    body.appendChild(tagRow);
+    uprightContainer.appendChild(tagRow);
+    body.appendChild(uprightContainer);
   }
 
   if (hasReversed) {
-    const heading = document.createElement('div');
-    heading.className = 'section-title';
-    heading.textContent = 'Reversed';
-    body.appendChild(heading);
-    body.appendChild(createTagRow(card.meanings_reversed, 'tag-reversed'));
+    const reversedContainer = document.createElement('div');
+    reversedContainer.className = 'meanings-container';
+    reversedContainer.dataset.orientation = 'reversed';
+
+    reversedContainer.appendChild(createTagRow(card.meanings_reversed, 'tag-reversed'));
+    body.appendChild(reversedContainer);
   }
 
-  container.appendChild(section);
+  showSection(SECTION_IDS.meanings);
 };
 
-const renderVisualSymbols = (card, container) => {
-  console.log('[renderVisualSymbols] Has visual_symbols?', !!card.visual_symbols, 'Value:', card.visual_symbols);
+const renderVisualSymbols = (card) => {
   if (!card.visual_symbols || typeof card.visual_symbols !== 'object') {
+    hideSection(SECTION_IDS.visualSymbols);
     return;
   }
 
   const entries = Object.entries(card.visual_symbols);
-  console.log('[renderVisualSymbols] Entries count:', entries.length);
   if (entries.length === 0) {
+    hideSection(SECTION_IDS.visualSymbols);
     return;
   }
 
-  const section = createSection('Visual Symbolism');
+  const body = getSafeSectionBody(SECTION_IDS.visualSymbols);
+  if (!body) {
+    return;
+  }
+
   const grid = document.createElement('div');
   grid.className = 'symbol-grid';
 
@@ -222,11 +323,11 @@ const renderVisualSymbols = (card, container) => {
     grid.appendChild(symbolCard);
   });
 
-  section.querySelector('.section-body').appendChild(grid);
-  container.appendChild(section);
+  body.appendChild(grid);
+  showSection(SECTION_IDS.visualSymbols);
 };
 
-const renderReadingSection = (card, container) => {
+const renderReadingSection = (card) => {
   const topics = [
     { title: 'Love & Relationships', icon: '💕', upright: card.love_upright, reversed: card.love_reversed },
     { title: 'Career & Work', icon: '💼', upright: card.career_upright, reversed: card.career_reversed },
@@ -234,101 +335,100 @@ const renderReadingSection = (card, container) => {
     { title: 'Health & Wellness', icon: '🌿', upright: card.health_upright, reversed: card.health_reversed }
   ].filter((topic) => topic.upright || topic.reversed);
 
-  console.log('[renderReadingSection] Topics with data:', topics.length);
   if (topics.length === 0) {
-    console.log('[renderReadingSection] No reading topics found, returning');
+    hideSection(SECTION_IDS.reading);
     return;
   }
 
-  const section = document.createElement('div');
-  section.className = 'section-block';
+  const body = getSafeSectionBody(SECTION_IDS.reading);
+  if (!body) {
+    return;
+  }
 
-  const label = document.createElement('div');
-  label.className = 'section-label';
-  label.textContent = 'In a Reading';
-  section.appendChild(label);
-
-  const grid = document.createElement('div');
-  grid.className = 'reading-grid';
+  const uprightGrid = document.createElement('div');
+  uprightGrid.className = 'reading-grid meanings-container active';
+  uprightGrid.dataset.orientation = 'upright';
 
   topics.forEach((topic) => {
-    const card = document.createElement('div');
-    card.className = 'reading-card';
-
-    const icon = document.createElement('div');
-    icon.className = 'reading-card-icon';
-    icon.textContent = topic.icon;
-    card.appendChild(icon);
-
-    const titleEl = document.createElement('div');
-    titleEl.className = 'reading-card-title';
-    titleEl.textContent = topic.title;
-    card.appendChild(titleEl);
-
     if (topic.upright) {
-      const uprightLabel = document.createElement('span');
-      uprightLabel.className = 'reading-label label-upright';
-      uprightLabel.textContent = 'Upright';
-      card.appendChild(uprightLabel);
+      const cardNode = document.createElement('div');
+      cardNode.className = 'reading-card';
+
+      const titleEl = document.createElement('div');
+      titleEl.className = 'reading-card-title';
+      titleEl.textContent = topic.icon + ' ' + topic.title;
+      cardNode.appendChild(titleEl);
 
       const uprightText = document.createElement('p');
       uprightText.textContent = topic.upright;
-      card.appendChild(uprightText);
-    }
+      cardNode.appendChild(uprightText);
 
-    if (topic.upright && topic.reversed) {
-      card.appendChild(document.createElement('br'));
+      uprightGrid.appendChild(cardNode);
     }
+  });
 
+  const reversedGrid = document.createElement('div');
+  reversedGrid.className = 'reading-grid meanings-container';
+  reversedGrid.dataset.orientation = 'reversed';
+
+  topics.forEach((topic) => {
     if (topic.reversed) {
-      const reversedLabel = document.createElement('span');
-      reversedLabel.className = 'reading-label label-reversed';
-      reversedLabel.textContent = 'Reversed';
-      card.appendChild(reversedLabel);
+      const cardNode = document.createElement('div');
+      cardNode.className = 'reading-card';
+
+      const titleEl = document.createElement('div');
+      titleEl.className = 'reading-card-title';
+      titleEl.textContent = topic.icon + ' ' + topic.title;
+      cardNode.appendChild(titleEl);
 
       const reversedText = document.createElement('p');
       reversedText.textContent = topic.reversed;
-      card.appendChild(reversedText);
-    }
+      cardNode.appendChild(reversedText);
 
-    grid.appendChild(card);
+      reversedGrid.appendChild(cardNode);
+    }
   });
 
-  section.appendChild(grid);
-  container.appendChild(section);
+  body.appendChild(uprightGrid);
+  body.appendChild(reversedGrid);
+  showSection(SECTION_IDS.reading);
 };
 
-const renderSimpleTextSections = (card, container) => {
-  console.log('[renderSimpleTextSections] Has spirituality?', !!card.spirituality);
-  console.log('[renderSimpleTextSections] Has numerology?', !!card.numerology);
-  console.log('[renderSimpleTextSections] Has symbolism?', Array.isArray(card.symbolism) && card.symbolism.length > 0);
-  
+const renderSimpleTextSections = (card) => {
   if (card.spirituality) {
-    const spirituality = createSection('Spiritual Significance');
-    addText(spirituality.querySelector('.section-body'), card.spirituality);
-    container.appendChild(spirituality);
+    const body = getSectionBody(SECTION_IDS.spirituality);
+    addText(body, card.spirituality);
+    showSection(SECTION_IDS.spirituality);
   }
 
   if (card.numerology) {
-    const numerology = createSection('Numerology');
-    addText(numerology.querySelector('.section-body'), card.numerology);
-    container.appendChild(numerology);
+    const body = getSectionBody(SECTION_IDS.numerology);
+    addText(body, card.numerology);
+    showSection(SECTION_IDS.numerology);
   }
 
   if (Array.isArray(card.symbolism) && card.symbolism.length > 0) {
-    const symbolism = createSection('Core Symbolism');
-    symbolism.querySelector('.section-body').appendChild(createTagRow(card.symbolism));
-    container.appendChild(symbolism);
+    const body = getSafeSectionBody(SECTION_IDS.symbolism);
+    if (!body) {
+      return;
+    }
+
+    body.appendChild(createTagRow(card.symbolism));
+    showSection(SECTION_IDS.symbolism);
   }
 };
 
-const renderGuidance = (card, container) => {
-  console.log('[renderGuidance] Has advice?', !!card.advice, 'Has warning?', !!card.warning);
+const renderGuidance = (card) => {
   if (!card.advice && !card.warning) {
+    hideSection(SECTION_IDS.guidance);
     return;
   }
 
-  const section = createSection('Guidance');
+  const body = getSafeSectionBody(SECTION_IDS.guidance);
+  if (!body) {
+    return;
+  }
+
   const grid = document.createElement('div');
   grid.className = 'guidance-grid';
 
@@ -364,54 +464,42 @@ const renderGuidance = (card, container) => {
     grid.appendChild(warningCard);
   }
 
-  section.querySelector('.section-body').appendChild(grid);
-  container.appendChild(section);
+  body.appendChild(grid);
+  showSection(SECTION_IDS.guidance);
 };
 
-const renderAffirmation = (card, container) => {
-  console.log('[renderAffirmation] Has affirmation?', !!card.affirmation);
+const renderAffirmation = (card) => {
   if (!card.affirmation) {
+    hideSection(SECTION_IDS.affirmation);
     return;
   }
 
-  const section = document.createElement('div');
-  section.className = 'section-block';
-
-  const block = document.createElement('div');
-  block.className = 'affirmation-block';
-
-  const label = document.createElement('div');
-  label.className = 'section-label';
-  label.textContent = 'Affirmation';
-  block.appendChild(label);
+  const body = getSafeSectionBody(SECTION_IDS.affirmation);
+  if (!body) {
+    return;
+  }
 
   const text = document.createElement('p');
   text.className = 'affirmation-text';
   text.textContent = `"${card.affirmation}"`;
-  block.appendChild(text);
-
-  section.appendChild(block);
-  container.appendChild(section);
+  body.appendChild(text);
+  showSection(SECTION_IDS.affirmation);
 };
 
-const renderCorrespondences = (card, container) => {
+const renderCorrespondences = (card) => {
   const hasAny = (Array.isArray(card.colors) && card.colors.length > 0)
     || (Array.isArray(card.crystals) && card.crystals.length > 0)
     || (Array.isArray(card.herbs) && card.herbs.length > 0);
 
-  console.log('[renderCorrespondences] Has colors?', Array.isArray(card.colors) && card.colors.length > 0);
-  console.log('[renderCorrespondences] Has crystals?', Array.isArray(card.crystals) && card.crystals.length > 0);
-  console.log('[renderCorrespondences] Has herbs?', Array.isArray(card.herbs) && card.herbs.length > 0);
-  console.log('[renderCorrespondences] Has any?', hasAny);
-
   if (!hasAny) {
+    hideSection(SECTION_IDS.correspondences);
     return;
   }
 
   const colorMap = {
     yellow: '#f5e642',
     'light blue': '#87ceeb',
-    'light_blue': '#87ceeb',
+    light_blue: '#87ceeb',
     white: '#f0f0f0',
     red: '#e74c3c',
     orange: '#f39c12',
@@ -427,7 +515,11 @@ const renderCorrespondences = (card, container) => {
     grey: '#95a5a6'
   };
 
-  const section = createSection('Correspondences');
+  const body = getSafeSectionBody(SECTION_IDS.correspondences);
+  if (!body) {
+    return;
+  }
+
   const grid = document.createElement('div');
   grid.className = 'correspondences-row';
 
@@ -499,46 +591,72 @@ const renderCorrespondences = (card, container) => {
     grid.appendChild(herbCard);
   }
 
-  section.querySelector('.section-body').appendChild(grid);
-  container.appendChild(section);
+  body.appendChild(grid);
+  showSection(SECTION_IDS.correspondences);
 };
 
-const renderRelatedCards = (card, allCards, container) => {
+const createCardNameToSlugMap = (allCards) => {
+  const map = new Map();
+
+  if (!Array.isArray(allCards)) {
+    return map;
+  }
+
+  allCards.forEach((entry) => {
+    if (entry && entry.name && entry.slug) {
+      map.set(entry.name, entry.slug);
+    }
+  });
+
+  return map;
+};
+
+const renderRelatedCards = (card, cardNameToSlug) => {
   if (!Array.isArray(card.related_cards) || card.related_cards.length === 0) {
+    hideSection(SECTION_IDS.related);
     return;
   }
 
-  const section = createSection('Related Cards');
+  const body = getSafeSectionBody(SECTION_IDS.related);
+  if (!body) {
+    return;
+  }
+
   const row = document.createElement('div');
   row.className = 'related-row';
 
   card.related_cards.forEach((name) => {
-    const match = allCards.find((candidate) => candidate.name === name);
+    const slug = cardNameToSlug.get(name);
     const link = document.createElement('a');
     link.className = 'related-chip';
     link.textContent = name;
-    link.href = match ? `/cards/${match.slug}` : '#';
+    link.href = slug ? `/cards/${slug}` : '#';
     row.appendChild(link);
   });
 
-  section.querySelector('.section-body').appendChild(row);
-  container.appendChild(section);
+  body.appendChild(row);
+  showSection(SECTION_IDS.related);
 };
 
-const renderOriginalMeaning = (card, container) => {
+const renderOriginalMeaning = (card) => {
   if (!card.original_meaning) {
+    hideSection(SECTION_IDS.original);
     return;
   }
 
-  const section = createSection('Historical Meaning');
+  const body = getSafeSectionBody(SECTION_IDS.original);
+  if (!body) {
+    return;
+  }
+
   const block = document.createElement('div');
   block.className = 'original-block';
   block.innerHTML = `<strong>Traditional Interpretation</strong>${card.original_meaning}`;
-  section.querySelector('.section-body').appendChild(block);
-  container.appendChild(section);
+  body.appendChild(block);
+  showSection(SECTION_IDS.original);
 };
 
-const renderAdditionalFields = (card, container) => {
+const renderAdditionalFields = (card) => {
   const usedKeys = new Set([
     'id',
     'slug',
@@ -594,10 +712,15 @@ const renderAdditionalFields = (card, container) => {
   });
 
   if (extras.length === 0) {
+    hideSection(SECTION_IDS.additional);
     return;
   }
 
-  const section = createSection('Additional Details');
+  const body = getSafeSectionBody(SECTION_IDS.additional);
+  if (!body) {
+    return;
+  }
+
   const grid = document.createElement('div');
   grid.className = 'grid-two';
 
@@ -636,8 +759,8 @@ const renderAdditionalFields = (card, container) => {
     grid.appendChild(cardNode);
   });
 
-  section.querySelector('.section-body').appendChild(grid);
-  container.appendChild(section);
+  body.appendChild(grid);
+  showSection(SECTION_IDS.additional);
 };
 
 const renderFooter = (card, totalCards) => {
@@ -647,104 +770,70 @@ const renderFooter = (card, totalCards) => {
   }
 
   const parts = [];
-  
+
   if (Number.isFinite(card.number)) {
     parts.push(`Card ${card.number} of ${totalCards}`);
   } else {
     parts.push(`Card of ${totalCards}`);
   }
-  
+
   if (card.arcana) {
     parts.push(`${card.arcana} Arcana`);
   }
-  
+
   footer.textContent = parts.join(' · ');
 };
 
 const renderCard = async () => {
   const slug = normalizeSlug();
-  const content = document.getElementById('detail-sections');
-
-  console.log('[Card Detail] Slug:', slug);
-  console.log('[Card Detail] Content element:', content);
 
   try {
-    console.log('[Card Detail] Fetching cards from /cards...');
-    const response = await fetch('/cards');
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    const cards = await response.json();
-    console.log('[Card Detail] Cards fetched:', cards.length, 'cards');
-    console.log('[Card Detail] All slugs:', cards.map(c => c.slug));
-    
-    const card = cards.find((entry) => entry.slug === slug);
+    const [cardResponse, cardsResponse] = await Promise.all([
+      fetch(`/cards/data/${encodeURIComponent(slug)}`),
+      fetch('/cards/data')
+    ]);
 
-    if (!card) {
-      console.error('[Card Detail] Card with slug', slug, 'not found');
-      throw new Error(`Card with slug "${slug}" not found`);
+    // Redirect to 404 page if card is not found
+    if (cardResponse.status === 404) {
+      window.location.replace('/404.html');
+      return;
     }
 
-    console.log('[Card Detail] Card found:', card.name);
-    console.log('[Card Detail] **FULL CARD OBJECT:**', JSON.stringify(card, null, 2));
-    console.log('[Card Detail] Card.spirituality:', card.spirituality);
-    console.log('[Card Detail] Card.advice:', card.advice);
-    console.log('[Card Detail] Card.affirmation:', card.affirmation);
-    console.log('[Card Detail] Card.colors:', card.colors);
-    
+    if (!cardResponse.ok) {
+      throw new Error(`Card request failed with status: ${cardResponse.status}`);
+    }
+
+    if (!cardsResponse.ok) {
+      throw new Error(`Cards request failed with status: ${cardsResponse.status}`);
+    }
+
+    const [card, cards] = await Promise.all([
+      cardResponse.json(),
+      cardsResponse.json()
+    ]);
+    const cardNameToSlug = createCardNameToSlugMap(cards);
+
     document.title = `Tarot Guide — ${card.name}`;
-    content.innerHTML = '';
+    resetDynamicSections();
 
     renderHero(card);
-    console.log('[Card Detail] After renderHero - detail-sections children:', content.children.length);
-    
     renderImageAndFacts(card);
-    console.log('[Card Detail] After renderImageAndFacts');
-    
-    renderDescription(card, content);
-    console.log('[Card Detail] After renderDescription - detail-sections children:', content.children.length);
-    
-    renderKeywords(card, content);
-    console.log('[Card Detail] After renderKeywords - detail-sections children:', content.children.length);
-    
-    renderMeanings(card, content);
-    console.log('[Card Detail] After renderMeanings - detail-sections children:', content.children.length);
-    
-    renderVisualSymbols(card, content);
-    console.log('[Card Detail] After renderVisualSymbols - detail-sections children:', content.children.length);
-    
-    renderReadingSection(card, content);
-    console.log('[Card Detail] After renderReadingSection - detail-sections children:', content.children.length);
-    
-    renderSimpleTextSections(card, content);
-    console.log('[Card Detail] After renderSimpleTextSections - detail-sections children:', content.children.length);
-    
-    renderGuidance(card, content);
-    console.log('[Card Detail] After renderGuidance - detail-sections children:', content.children.length);
-    
-    renderAffirmation(card, content);
-    console.log('[Card Detail] After renderAffirmation - detail-sections children:', content.children.length);
-    
-    renderCorrespondences(card, content);
-    console.log('[Card Detail] After renderCorrespondences - detail-sections children:', content.children.length);
-    
-    renderRelatedCards(card, cards, content);
-    console.log('[Card Detail] After renderRelatedCards - detail-sections children:', content.children.length);
-    
-    renderOriginalMeaning(card, content);
-    console.log('[Card Detail] After renderOriginalMeaning - detail-sections children:', content.children.length);
-    
-    renderAdditionalFields(card, content);
-    console.log('[Card Detail] After renderAdditionalFields - detail-sections children:', content.children.length);
-    
+    createOrientationToggle();
+
+    renderDescription(card);
+    renderMeanings(card);
+    renderVisualSymbols(card);
+    renderReadingSection(card);
+    renderSimpleTextSections(card);
+    renderGuidance(card);
+    renderAffirmation(card);
+    renderCorrespondences(card);
+    renderRelatedCards(card, cardNameToSlug);
+    renderOriginalMeaning(card);
+    renderAdditionalFields(card);
     renderFooter(card, cards.length);
-    console.log('[Card Detail] Card rendered successfully. Total sections:', content.children.length);
-    console.log('[Card Detail] Content element height:', content.offsetHeight);
-    console.log('[Card Detail] Content element scrollHeight:', content.scrollHeight);
   } catch (error) {
-    console.error('[Card Detail] Error loading card:', error);
+    const content = document.getElementById('detail-sections');
     content.innerHTML = '';
 
     const wrapper = document.createElement('div');

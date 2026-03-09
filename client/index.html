@@ -16,6 +16,29 @@
 
   <body>
     <header></header>
+    <div class="container search-container">
+      <form id="search-form" class="search-form-row">
+        <select id="search-attr" class="search-control search-attr">
+          <optgroup label="High Value Filters">
+            <option value="suit_or_arcana" selected>Suit / Arcana</option>
+            <option value="name">Card Name</option>
+            <option value="element">Element</option>
+            <option value="yes_maybe_no">Yes/Maybe/No</option>
+            <option value="astrology">Astrology</option>
+            <option value="number">Card Number</option>
+            <option value="keywords">Keywords</option>
+          </optgroup>
+          <optgroup label="Medium Value Filters">
+            <option value="colors">Colors</option>
+            <option value="crystals">Crystals</option>
+            <option value="herbs">Herbs</option>
+          </optgroup>
+        </select>
+        <input type="search" id="search-query" class="search-control" placeholder="e.g., Swords, Major, Air..." required>
+        <button type="submit" class="search-btn">Search</button>
+        <button type="button" id="reset-btn" class="secondary search-btn">Reset</button>
+      </form>
+    </div>
     <main class="container" id="main-content"></main>
   </body>
 

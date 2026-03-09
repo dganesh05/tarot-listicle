@@ -12,6 +12,7 @@ const app = express();
 app.use('/public', express.static(path.resolve(__dirname, '../client/dist')));
 app.use('/scripts', express.static(path.resolve(__dirname, '../client/public/scripts')));
 app.use('/images', express.static(path.resolve(__dirname, '../client/public/images/cards')));
+app.use('/images', express.static(path.resolve(__dirname, '../client/public/images')));
 
 app.use('/cards', cardsRouter);
 

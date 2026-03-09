@@ -1,10 +1,10 @@
-# WEB103 Project 1 - Tarot Listicle
+# WEB103 Project 2 - Tarot Listicle
 
 Submitted by: **Divya Ganesh**
 
-About this web app: **Tarot Listicle is an interactive web application that showcases the complete 78-card tarot deck. Cards are organized by arcana type (Major Arcana and Minor Arcana suits) with collapsible sections for easy browsing. Users can click on any card to view detailed information including meanings, symbolism, astrological associations, love and career guidance, and more. The app features a mystical dark theme with elegant typography and a sophisticated card-based layout.**
+About this web app: **Tarot Listicle is an interactive web app for browsing all 78 tarot cards and opening a unique detail page for each card. Users can search cards by specific attributes such as suit/arcana, name, element, astrology, and more. The app uses an Express API connected to a PostgreSQL database and a custom front end built with HTML, CSS, and vanilla JavaScript.**
 
-Time spent: **4** hours
+Time spent: **6** hours
 
 ## Required Features
 
@@ -12,36 +12,41 @@ The following **required** functionality is completed:
 
 <!-- Make sure to check off completed functionality below -->
 - [x] **The web app uses only HTML, CSS, and JavaScript without a frontend framework**
-- [x] **The web app displays a title**
-- [x] **The web app displays at least five unique list items, each with at least three displayed attributes (such as title, text, and image)**
-- [x] **The user can click on each item in the list to see a detailed view of it, including all database fields**
-  - [x] **Each detail view should be a unique endpoint, such as as `localhost:3000/bosses/crystalguardian` and `localhost:3000/mantislords`**
-  - [x] *Note: When showing this feature in the video walkthrough, please show the unique URL for each detailed view. We will not be able to give points if we cannot see the implementation* 
-- [x] **The web app serves an appropriate 404 page when no matching route is defined**
-- [x] **The web app is styled using Picocss**
+- [x] **The web app is connected to a PostgreSQL database, with an appropriately structured database table for the list items**
+  - [x] **NOTE: Your walkthrough added to the README must include a view of your Render dashboard demonstrating that your Postgres database is available**
+  - [x]  **NOTE: Your walkthrough added to the README must include a demonstration of your table contents. Use the psql command 'SELECT * FROM tablename;' to display your table contents.**
+
 
 The following **optional** features are implemented:
 
-- [x] The web app displays items in a unique format, such as cards rather than lists or animated list items
+- [x] The user can search for items by a specific attribute
 
 The following **additional** features are implemented:
 
-- [x] **Rich Card Details**: Each card displays extensive information including upright and reversed meanings, keywords, astrological associations, numerology, visual symbolism, career guidance, and love readings
-- [x] **Organized Navigation**: Cards are intelligently grouped by Major Arcana and Minor Arcana (organized by suit: Cups, Pentacles, Swords, Wands)
-- [x] **Beautiful Dark Theme**: Custom mystical styling with gradient backgrounds, elegant typography (Cinzel and Cormorant Garamond fonts), and gold accents
-- [x] **Card Images**: High-quality tarot card images for all 78 cards in the deck
-- [x] **Responsive Design**: Fully responsive layout that works on desktop and mobile devices
+- [x] Unique card detail routes by slug (for example, `/cards/0-the-fool`)
+- [x] Custom 404 page for undefined routes
+- [x] Rich card metadata shown in detail view (meanings, symbolism, correspondences, and guidance)
+- [x] Responsive card grid and detail layout
 
 ## Video Walkthrough
 
-**Note: please be sure to 
-
 Here's a walkthrough of implemented required features:
 
-<img src='http://i.imgur.com/link/to/your/gif/file.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
+<img src='https://i.imgur.com/wDtoAfk.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
+
+<!--
+What your GIF walkthrough should include (in order):
+1) Open the app and use the search UI to filter by at least one specific attribute.
+2) Click a card and show the unique detail URL in the browser.
+3) Show the Render dashboard page where your PostgreSQL service/database is visible and running.
+4) In terminal, run psql and execute: SELECT * FROM cards;
+5) Keep the table output visible long enough to confirm rows exist.
+-->
+
+<!-- Optional: Add still screenshots in README if the GIF is too small to read text clearly. -->
 
 <!-- Replace this with whatever GIF tool you used! -->
-GIF created with ...  Add GIF tool here
+GIF created with Cap.so
 <!-- Recommended tools:
 [Kap](https://getkap.co/) for macOS
 [ScreenToGif](https://www.screentogif.com/) for Windows
@@ -49,14 +54,7 @@ GIF created with ...  Add GIF tool here
 
 ## Notes
 
-**Project Highlights:**
-- Implemented a comprehensive 78-card tarot deck database with rich metadata for each card
-- Created collapsible accordion sections for intuitive card organization and navigation
-- Built a custom dark-themed design with mystical aesthetics using CSS gradients and elegant fonts
-- Each card has a unique detail page (e.g., `/cards/0-the-fool`) accessible via slug, allowing users to explore comprehensive information about each card
-- Implemented proper 404 error handling with a custom error page
-- Used Express.js server with static file serving and routing for the API endpoints
-- Organized codebase with separate client and server structures for scalability
+The API and search logic are complete and connected to PostgreSQL. The remaining checklist item above should be marked complete after the updated walkthrough clearly shows the Render dashboard and the `SELECT * FROM cards;` terminal output.
 
 ## License
 
